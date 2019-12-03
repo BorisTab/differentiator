@@ -1,23 +1,9 @@
 graph G{
-node_0x55bced4f82a0 [shape=record, label=" { 0x55bced4f82a0 | { Val: 1 | Type: 2 } | { left: 0x55bced4f8180 | right: 0x55bced4f8270 } } "];
-node_0x55bced4f8180 [shape=record, label=" { 0x55bced4f8180 | { Val: 5 | Type: 2 } | { left: 0x55bced4f80c0 | right: 0x55bced4f8150 } } "];
-node_0x55bced4f80c0 [shape=record, label=" { 0x55bced4f80c0 | { Val: 5 | Type: 1 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f8150 [shape=record, label=" { 0x55bced4f8150 | { Val: 5 | Type: 2 } | { left: 0x55bced4f80f0 | right: 0x55bced4f8120 } } "];
-node_0x55bced4f80f0 [shape=record, label=" { 0x55bced4f80f0 | { Val: 10 | Type: 1 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f8120 [shape=record, label=" { 0x55bced4f8120 | { Val: 2 | Type: 1 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f8270 [shape=record, label=" { 0x55bced4f8270 | { Val: 3 | Type: 2 } | { left: 0x55bced4f81b0 | right: 0x55bced4f8240 } } "];
-node_0x55bced4f81b0 [shape=record, label=" { 0x55bced4f81b0 | { Val: 7 | Type: 1 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f8240 [shape=record, label=" { 0x55bced4f8240 | { Val: 2 | Type: 2 } | { left: 0x55bced4f81e0 | right: 0x55bced4f8210 } } "];
-node_0x55bced4f81e0 [shape=record, label=" { 0x55bced4f81e0 | { Val: 23 | Type: 3 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f8210 [shape=record, label=" { 0x55bced4f8210 | { Val: 3 | Type: 1 } | { left: 0 | right: 0 } } "];
-node_0x55bced4f82a0-- node_0x55bced4f8180;
-node_0x55bced4f82a0-- node_0x55bced4f8270;
-node_0x55bced4f8180-- node_0x55bced4f80c0;
-node_0x55bced4f8180-- node_0x55bced4f8150;
-node_0x55bced4f8150-- node_0x55bced4f80f0;
-node_0x55bced4f8150-- node_0x55bced4f8120;
-node_0x55bced4f8270-- node_0x55bced4f81b0;
-node_0x55bced4f8270-- node_0x55bced4f8240;
-node_0x55bced4f8240-- node_0x55bced4f81e0;
-node_0x55bced4f8240-- node_0x55bced4f8210;
+node_0x55f638c39150 [shape=record, label=" { 0x55f638c39150 | { Val: sin | Type: 2 } | { left: 0 | right: 0x55f638c39120 } } "];
+node_0x55f638c39120 [shape=record, label=" { 0x55f638c39120 | { Val: + | Type: 2 } | { left: 0x55f638c390c0 | right: 0x55f638c390f0 } } "];
+node_0x55f638c390c0 [shape=record, label=" { 0x55f638c390c0 | { Val: x | Type: 3 } | { left: 0 | right: 0 } } "];
+node_0x55f638c390f0 [shape=record, label=" { 0x55f638c390f0 | { Val: 2 | Type: 1 } | { left: 0 | right: 0 } } "];
+node_0x55f638c39150-- node_0x55f638c39120;
+node_0x55f638c39120-- node_0x55f638c390c0;
+node_0x55f638c39120-- node_0x55f638c390f0;
 }

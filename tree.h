@@ -23,14 +23,25 @@ enum nodeTypes {
     VARIABLE = 3,
 };
 
+#define DEF_CMD(name, num, sign, code, texCode) \
+    name = num,
+
 enum operations {
     NOTHING = 0,
-    ADD = 1,
-    SUB = 2,
-    MUL = 3,
-    DIV = 4,
-    DEG = 5,
+#include "dsl.h"
+#undef DEF_CMD
 };
+
+#define DEF_CMD(name, num, sign, code, texCode) \
+    case num: return sign;
+
+const char *getEnumName(int op) {
+    switch (op) {
+#include "dsl.h"
+#undef DEF_CMD
+        default: return nullptr;
+    }
+}
 
 const char dumpFilePath[FILENAME_MAX] = "../TreeDumpFile.txt";
 
@@ -61,8 +72,16 @@ private:
         assert(node);
         assert(dumpFile);
 
+
+
         *dumpFile << "node_" << node << " [shape=record, label=\" { "<< node
-            << " | { Val: " << node->value << " | Type: " << node->nodeType
+            << " | { Val: ";
+
+        if (node->nodeType == VARIABLE) *dumpFile << (char) (node->value + 'a');
+        else if (node->nodeType == OPERATION) *dumpFile << getEnumName(node->value);
+        else *dumpFile << node->value;
+
+        *dumpFile << " | Type: " << node->nodeType
             << " } | { left: " << node->leftChild
             << " | right: " << node->rightChild << " } } \"];\n";
 
@@ -124,33 +143,6 @@ private:
             return;
         }
     }
-
-//    void infixRead(const char *inPath) {
-//        int fileSize = getFileSize(inPath);
-//
-//        char *buffer = new char[fileSize] ();
-//        char *bufferStart = buffer;
-//        readFile(inPath, buffer, fileSize);
-//
-//        if (*buffer != '{') {
-//            printf("Error: No tree in file");
-//            exit(NOT_FOUND_TREE_IN_FILE);
-//        }
-//
-//        if (*(buffer + spaceN(buffer + 1)) == '}') {
-//            printf("Error: tree is empty");
-//            exit(NOT_FOUND_TREE_IN_FILE);
-//        }
-//
-//        buffer += 2 + spaceN(buffer + 1);
-//        *(strchr(buffer + 1, '"')) = '\0';
-//        auto *node = newNode(buffer);
-//        root = node;
-//        buffer += strlen(buffer);
-//        buffer += spaceN(buffer + 1) + 1;
-//
-//        writeNode(&buffer, root);
-//    }
 
     void prefixRead(const char *inPath) {
         int fileSize = getFileSize(inPath);
@@ -220,7 +212,7 @@ private:
 
     void tyingNodes(Node <elemType> *node, Node <elemType> *valLeft, Node <elemType> *valRight) {
         node->leftChild = valLeft;
-        node->leftChild->parent = node;
+        if (valLeft) node->leftChild->parent = node;
 
         node->rightChild = valRight;
         node->rightChild->parent = node;
@@ -263,7 +255,7 @@ private:
     }
 
     Node <elemType> *getD() {
-        Node <elemType> *valLeft = getP();
+        Node <elemType> *valLeft = getF();
         Node <elemType> *node = nullptr;
         Node <elemType> *valRight = nullptr;
 
@@ -271,7 +263,7 @@ private:
             char op = *s;
             s++;
 
-            valRight = getP();
+            valRight = getF();
             node = newNode(DEG);
         }
 
@@ -280,6 +272,68 @@ private:
         node->nodeType = OPERATION;
 
         return node;
+    }
+
+    Node <elemType> *getF() {
+        Node <elemType> *node = nullptr;
+        Node <elemType> *valRight = nullptr;
+
+        if (!isalpha(*s)) {
+            return getP();
+        }
+
+        char func[10] = "";
+        char *funcStart = s;
+        while (isalpha(*s)) {
+            func[s - funcStart] = *s;
+            s++;
+        }
+
+        if (*s != '(') {
+            s = funcStart;
+            return getN();
+        }
+        s++;
+
+        int val = 0;
+#define DEF_CMD(name, num, sign, code, texCode) \
+    if (!strcmp(func, sign)) val = num; \
+    else
+#include "dsl.h"
+#undef DEF_CMD
+        {
+            printf("Syntax error: unknown function %s", func);
+            exit(SYNTAX_ERROR);
+        }
+
+        valRight = getE();
+
+        if (*s != ')') {
+            printf("Syntax error: expected ')' after %s argument", func);
+            exit(SYNTAX_ERROR);
+        }
+        s++;
+
+        node = newNode(val, OPERATION);
+        tyingNodes(node, nullptr, valRight);
+        return node;
+    }
+
+    void nodeToTex(Node <double> *node, FILE *tex) {
+        if (node->nodeType == NUMBER) fprintf(tex, "%g", node->value);
+        else if (node->nodeType == VARIABLE) fprintf(tex, "%c", (char) (node->value + 'a'));
+        else if (node->nodeType == OPERATION) {
+#define DEF_CMD(name, num, sign, code, texCode) \
+            case num: texCode break;
+
+            switch ((int) node->value) {
+#include "dsl.h"
+
+                default: printf("Error: unknown function");
+            }
+#undef DEF_CMD
+
+        }
     }
 
 public:
@@ -300,8 +354,12 @@ public:
         }
     }
 
-    Node <elemType> *newNode(elemType val) {
-        return new Node <elemType> (val);
+    Tree() = default;
+
+    Node <elemType> *newNode(elemType val, elemType type = NOTHING) {
+        auto *node = new Node <elemType> (val);
+        node->nodeType = type;
+        return node;
     }
 
     void insertNodeLeft(Node <elemType> *parent, Node <elemType> *node) {
@@ -410,6 +468,42 @@ public:
 
         saveNode(&outFile, root);
         outFile.close();
+    }
+
+    void setRoot(Node <elemType> *node) {
+        root = node;
+    }
+
+    Node <elemType> *copySubtree(Node <elemType> *node) {
+        Node <elemType> *subtree = newNode(node->value, node->nodeType);
+
+        if (node->leftChild) subtree->leftChild = copySubtree(node->leftChild);
+        if (node->rightChild) subtree->rightChild = copySubtree(node->rightChild);
+
+        return subtree;
+    }
+
+    void saveTex() {
+        FILE *tex = fopen("../diff.tex", "w");
+
+        fprintf(tex, "\\documentclass[12pt,a4paper]{scrartcl}\n"
+                     "\\usepackage[utf8]{inputenc}\n"
+                     "\\usepackage[english,russian]{babel}\n"
+                     "\\usepackage{indentfirst}\n"
+                     "\\usepackage{misccorr}\n"
+                     "\\usepackage{graphicx}\n"
+                     "\\usepackage{amsmath}\n"
+                     "\\begin{document}\n");
+        fprintf(tex, "\\begin{equation}\\label{eq:1}");
+
+        fprintf(tex, "f = ");
+        nodeToTex(root, tex);
+
+        fprintf(tex, "\\end{equation}");
+        fprintf(tex, "\\end{document}");
+
+        fclose(tex);
+        std::system("pdflatex ../diff.tex");
     }
 };
 
